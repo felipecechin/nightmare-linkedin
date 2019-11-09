@@ -28,7 +28,6 @@ function *run() {
         width: 1200,
         height: 1024
     });
-    var dimensoes = "";
     try {
         yield nightmare
             .goto('https://www.linkedin.com/login')
