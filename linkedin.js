@@ -34,8 +34,10 @@ function toUpper(str) {
         .join(' ');
 }
 
+console.log("Carregando planilhas...");
 const result = getAllFiles("planilhas");
 
+console.log("Carregando dados dos egressos...");
 var alunos = [];
 result.forEach(function (arquivo) {
     const workbook = XLSX.readFile(arquivo);
@@ -64,15 +66,12 @@ if (senha=="") {
     console.log("Coloque sua senha de login do Linkedin no arquivo account.js");
     process.exit();
 }
-console.log("Executando");
 
 function executar() {
     vo(run)(function (err, result) {
         if (err) throw err;
     });
 }
-
-executar();
 
 function *run() {
 
@@ -85,6 +84,7 @@ function *run() {
         height: 1024
     });
     try {
+        console.log("Logando no Linkedin...");
         yield nightmare
             .goto('https://www.linkedin.com/login')
             .wait('input[id=username]')
@@ -93,6 +93,8 @@ function *run() {
             .click('button[type=submit]')
             .wait('div[id=global-nav-typeahead]');
 
+
+        console.log("Executando consultas ao Linkedin...");
         for (var i = 0; i < alunos.length; i++) {
             var busca = yield nightmare
                 .goto('https://www.linkedin.com/search/results/all/?keywords='+alunos[i].nome)
@@ -111,7 +113,6 @@ function *run() {
                         }
                     }).then(function (nome) {
                         if (nome.toLowerCase() == alunos[i].nome) {
-                            console.log(toUpper(alunos[i].nome) + ': ' + nome.toLowerCase());
                             nomeCorreto = true;
                         }
                     });
@@ -154,3 +155,5 @@ function *run() {
 
     yield nightmare.end();
 }
+
+executar();
