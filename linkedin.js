@@ -94,24 +94,6 @@ function *run() {
             .wait('div[id=global-nav-typeahead]');
 
         for (var i = 0; i < alunos.length; i++) {
-            if (i>0 && i%5===0) {
-                yield nightmare.end();
-                yield nightmare = Nightmare({ waitTimeout: 10000,
-                    show: true,
-                    frame: false,
-                    maxHeight:16384,
-                    maxWidth:16384,
-                    width: 1200,
-                    height: 1024
-                });
-                yield nightmare
-                    .goto('https://www.linkedin.com/login')
-                    .wait('input[id=username]')
-                    .insert('input[id=username]', email)
-                    .insert('input[id=password]', senha)
-                    .click('button[type=submit]')
-                    .wait('div[id=global-nav-typeahead]');
-            }
             var busca = yield nightmare
                 .goto('https://www.linkedin.com/search/results/all/?keywords='+alunos[i].nome)
                 // .goto('https://www.linkedin.com/search/results/all/?keywords=bibiana%20brasil%20missão')
@@ -119,23 +101,18 @@ function *run() {
                 .exists('div.search-result__info.pt3.pb4.ph0');
             if (busca) {
                 yield nightmare
-                    .wait('div.search-result__info.pt3.pb4.ph0')
-                    .click('a.search-result__result-link.ember-view')
-                    .wait('section.pv-top-card-v3.artdeco-card.ember-view')
                     .evaluate(function () {
-
-                        var seletor = document.body.querySelector('span.text-align-left.ml2.t-14.t-black.t-bold.full-width.lt-line-clamp.lt-line-clamp--multi-line.ember-view');
+                        var seletor = document.body.querySelector('span.actor-name');
                         if (seletor) {
                             return seletor.textContent;
                         } else {
                             return false;
                         }
-                    })
-                    .then(function (body) {
-                        if (body) {
-                            console.log(toUpper(alunos[i].nome) + ': ' + body.trim());
+                    }).then(function (nome) {
+                        if (nome) {
+                            console.log(alunos[i].nome + ': ' + nome);
                         } else {
-                            console.log(toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
+                            console.log(alunos[i].nome + ': nao rolou');
                         }
                     });
             } else {
