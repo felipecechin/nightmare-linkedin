@@ -100,6 +100,7 @@ function *run() {
                 .wait('div.search-results.ember-view')
                 .exists('div.search-result__info.pt3.pb4.ph0');
             if (busca) {
+                var nomeCorreto = false;
                 yield nightmare
                     .evaluate(function () {
                         var seletor = document.body.querySelector('span.actor-name');
@@ -109,12 +110,35 @@ function *run() {
                             return false;
                         }
                     }).then(function (nome) {
-                        if (nome) {
-                            console.log(alunos[i].nome + ': ' + nome);
-                        } else {
-                            console.log(alunos[i].nome + ': nao rolou');
+                        if (nome.toLowerCase() == alunos[i].nome) {
+                            console.log(toUpper(alunos[i].nome) + ': ' + nome.toLowerCase());
+                            nomeCorreto = true;
                         }
                     });
+                if (nomeCorreto) {
+                    yield nightmare
+                        .wait('div.search-result__info.pt3.pb4.ph0')
+                        .click('a.search-result__result-link.ember-view')
+                        .wait('section.pv-top-card-v3.artdeco-card.ember-view')
+                        .evaluate(function () {
+
+                            var seletor = document.body.querySelector('span.text-align-left.ml2.t-14.t-black.t-bold.full-width.lt-line-clamp.lt-line-clamp--multi-line.ember-view');
+                            if (seletor) {
+                                return seletor.textContent;
+                            } else {
+                                return false;
+                            }
+                        })
+                        .then(function (body) {
+                            if (body) {
+                                console.log(toUpper(alunos[i].nome) + ': ' + body.trim());
+                            } else {
+                                console.log(toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
+                            }
+                        });
+                } else {
+                    console.log(toUpper(alunos[i].nome) + ': usuário não encontrado');
+                }
             } else {
                 console.log(toUpper(alunos[i].nome) + ': usuário não encontrado');
             }
