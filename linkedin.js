@@ -1,9 +1,60 @@
-var Nightmare  = require('nightmare');
-var vo         = require('vo');
-var account    = require('./account.js');
+var Nightmare = require('nightmare');
+var vo = require('vo');
+var account = require('./account.js');
+var moment = require('moment');
+const XLSX = require('xlsx');
+const fs = require("fs");
+const path = require("path");
+
+//console.log(moment().utcOffset(-180).format("DD/MM/YYYY HH:mm:ss"));
+
+
+const getAllFiles = function(dirPath, arrayOfFiles) {
+    files = fs.readdirSync(dirPath);
+
+    arrayOfFiles = arrayOfFiles || [];
+
+    files.forEach(function(file) {
+        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+            arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles)
+        } else {
+            arrayOfFiles.push(path.join(__dirname, dirPath, "/", file))
+        }
+    });
+
+    return arrayOfFiles;
+};
+function toUpper(str) {
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
+}
+
+const result = getAllFiles("planilhas");
+
+var alunos = [];
+result.forEach(function (arquivo) {
+    const workbook = XLSX.readFile(arquivo);
+    const sheet_name_list = workbook.SheetNames;
+    var json = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+    json.forEach(function (linha) {
+        if (linha.NOME_PESSOA) {
+            var nomeCurso = {"nome" : linha.NOME_PESSOA.toLowerCase(), "curso" : linha.NOME_CURSO};
+            alunos.push(nomeCurso);
+        } else if (linha.ALUNO) {
+            var nomeCurso = {"nome" : linha.ALUNO.toLowerCase(), "curso" : "Pós-graduação"};
+            alunos.push(nomeCurso);
+        }
+    });
+});
+fs.writeFileSync("alunos.json", JSON.stringify(alunos, null, 4));
+
 var email = account.linkedin.email;
 var senha = account.linkedin.senha;
-var nomes = ["felipe cechin mello", "fernando vedoin garcia", "bruno frizzo trojahn", "bibiana brasil missão"];
 
 if (email=="") {
     console.log("Coloque seu email de login do Linkedin no arquivo account.js");
@@ -13,14 +64,19 @@ if (senha=="") {
     console.log("Coloque sua senha de login do Linkedin no arquivo account.js");
     process.exit();
 }
+console.log("Executando");
 
-vo(run)(function(err, result) {
-    if (err) throw err;
-});
+function executar() {
+    vo(run)(function (err, result) {
+        if (err) throw err;
+    });
+}
+
+executar();
 
 function *run() {
 
-    let nightmare = Nightmare({ waitTimeout: 10000,
+    var nightmare = Nightmare({ waitTimeout: 10000,
         show: true,
         frame: false,
         maxHeight:16384,
@@ -37,9 +93,27 @@ function *run() {
             .click('button[type=submit]')
             .wait('div[id=global-nav-typeahead]');
 
-        for (var i = 0; i < nomes.length; i++) {
+        for (var i = 0; i < alunos.length; i++) {
+            if (i>0 && i%5===0) {
+                yield nightmare.end();
+                yield nightmare = Nightmare({ waitTimeout: 10000,
+                    show: true,
+                    frame: false,
+                    maxHeight:16384,
+                    maxWidth:16384,
+                    width: 1200,
+                    height: 1024
+                });
+                yield nightmare
+                    .goto('https://www.linkedin.com/login')
+                    .wait('input[id=username]')
+                    .insert('input[id=username]', email)
+                    .insert('input[id=password]', senha)
+                    .click('button[type=submit]')
+                    .wait('div[id=global-nav-typeahead]');
+            }
             var busca = yield nightmare
-                .goto('https://www.linkedin.com/search/results/all/?keywords='+nomes[i])
+                .goto('https://www.linkedin.com/search/results/all/?keywords='+alunos[i].nome)
                 // .goto('https://www.linkedin.com/search/results/all/?keywords=bibiana%20brasil%20missão')
                 .wait('div.search-results.ember-view')
                 .exists('div.search-result__info.pt3.pb4.ph0');
@@ -59,18 +133,21 @@ function *run() {
                     })
                     .then(function (body) {
                         if (body) {
-                            console.log(nomes[i] + ': ' + body.trim());
+                            console.log(toUpper(alunos[i].nome) + ': ' + body.trim());
                         } else {
-                            console.log(nomes[i] + ": não encontrada empresa alguma");
+                            console.log(toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
                         }
                     });
             } else {
-                console.log(nomes[i] + ': usuário não encontrado');
+                console.log(toUpper(alunos[i].nome) + ': usuário não encontrado');
             }
         }
 
     } catch (e) {
-        console.log("Ocorreu algum erro, provavelmente usuário e/ou senha incorretos para login do Linkedin");
+        yield nightmare
+            .wait(1000)
+            .screenshot('./linkedin.png');
+        console.log("Ocorreu algum erro, verifique a imagem linkedin.png no diretório do projeto");
     }
 
 

@@ -89,3 +89,5 @@ package-lock.json
 
 #Output of 'linkedin.js'
 *.png
+
+alunos.json
