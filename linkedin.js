@@ -12,7 +12,7 @@ var express = require('express');
 const repo = require('./aluno-repo');
 
 //mongoose connection
-mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true, useUnifiedTopology: true });
 
 //console.log(moment().utcOffset(-180).format("DD/MM/YYYY HH:mm:ss"));
 
@@ -83,7 +83,7 @@ function executar() {
 function *run() {
 
     var nightmare = Nightmare({ waitTimeout: 10000,
-        show: true,
+        show: false,
         frame: false,
         maxHeight:16384,
         maxWidth:16384,
@@ -139,23 +139,23 @@ function *run() {
                         })
                         .then(function (body) {
                             if (body) {
-                                console.log(toUpper(alunos[i].nome) + '  ' + body.trim());
+                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + '  ' + body.trim());
                                 var novoAluno = {
                                     nome: toUpper(alunos[i].nome),
                                     curso: alunos[i].curso,
                                     anoEvasao: alunos[i].anoEvasao,
                                     empresa: body.trim()
-                                }
+                                };
                                 repo.insere(novoAluno);
                             } else {
-                                console.log(toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
+                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
                             }
                         });
                 } else {
-                    console.log(toUpper(alunos[i].nome) + ': usuário não encontrado');
+                    console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ': usuário não encontrado');
                 }
             } else {
-                console.log(toUpper(alunos[i].nome) + ': usuário não encontrado');
+                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ': usuário não encontrado');
             }
         }
 
