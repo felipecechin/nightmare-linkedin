@@ -6,8 +6,15 @@ const XLSX = require('xlsx');
 const fs = require("fs");
 const path = require("path");
 
-//console.log(moment().utcOffset(-180).format("DD/MM/YYYY HH:mm:ss"));
+var mongoose = require('mongoose');
+var express = require('express');
 
+const repo = require('./aluno-repo');
+
+//mongoose connection
+mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true });
+
+//console.log(moment().utcOffset(-180).format("DD/MM/YYYY HH:mm:ss"));
 
 const getAllFiles = function(dirPath, arrayOfFiles) {
     files = fs.readdirSync(dirPath);
@@ -45,10 +52,10 @@ result.forEach(function (arquivo) {
     var json = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
     json.forEach(function (linha) {
         if (linha.NOME_PESSOA) {
-            var nomeCurso = {"nome" : linha.NOME_PESSOA.toLowerCase(), "curso" : linha.NOME_CURSO};
+            var nomeCurso = {"nome" : linha.NOME_PESSOA.toLowerCase(), "curso" : linha.NOME_CURSO, "anoEvasao": linha.ANO_EVASAO};
             alunos.push(nomeCurso);
         } else if (linha.ALUNO) {
-            var nomeCurso = {"nome" : linha.ALUNO.toLowerCase(), "curso" : "Pós-graduação"};
+            var nomeCurso = {"nome" : linha.ALUNO.toLowerCase(), "curso" : "Pós-graduação", "anoEvasao": ""};
             alunos.push(nomeCurso);
         }
     });
@@ -91,7 +98,7 @@ function *run() {
             .insert('input[id=username]', email)
             .insert('input[id=password]', senha)
             .click('button[type=submit]')
-            .wait('div[id=global-nav-typeahead]');
+            .wait(2000);
 
 
         console.log("Executando consultas ao Linkedin...");
@@ -132,7 +139,14 @@ function *run() {
                         })
                         .then(function (body) {
                             if (body) {
-                                console.log(toUpper(alunos[i].nome) + ': ' + body.trim());
+                                console.log(toUpper(alunos[i].nome) + '  ' + body.trim());
+                                var novoAluno = {
+                                    nome: toUpper(alunos[i].nome),
+                                    curso: alunos[i].curso,
+                                    anoEvasao: alunos[i].anoEvasao,
+                                    empresa: body.trim()
+                                }
+                                repo.insere(novoAluno);
                             } else {
                                 console.log(toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
                             }
