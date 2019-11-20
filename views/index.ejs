@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <title>Lista de alunos</title>
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+        <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+        <script
+            src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    </head>
+    <body>
+        <h1>Lista de alunos</h1>
+        <table id="lista-alunos">
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Curso</th>
+                    <th>Ano de Evasao</th>
+                    <th>Empresa</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% alunos.forEach(function(aluno) { %>
+                    <tr>
+                        <td><%= aluno.nome %></td>
+                        <td><%= aluno.curso %></td>
+                        <td><%= aluno.anoEvasao %></td>
+                        <td><%= aluno.empresa %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+        <script>
+            $(document).ready( function () {
+                $('#lista-alunos').DataTable();
+            });
+        </script>
+    </body>
+</html>
