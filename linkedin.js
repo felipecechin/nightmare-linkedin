@@ -161,7 +161,9 @@ function *run() {
             .wait(1000)
             .screenshot('./linkedin.png');
         console.log("Ocorreu algum erro, verifique a imagem linkedin.png no diretório do projeto.");
-        console.log("Suas credenciais de acesso possivelmente estão incorretas, verifique-as.");
+        console.log("O erro pode ter ocorrido devido a:");
+        console.log("1) Suas credenciais de acesso estão incorretas, verifique-as.");
+        console.log("2) Você atingiu o limite de buscas no linkedin no dia de hoje. Tente novamente amanhã.");
         process.exit();
     }
 
