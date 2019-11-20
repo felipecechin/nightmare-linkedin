@@ -6,11 +6,12 @@ var mongoose = require('mongoose');
 const repo = require('./aluno-repo');
 
 // view engine setup
+app.use(express.static('./public'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 //mongoose connection
-mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true , useUnifiedTopology: true });
 
 app.get('/', async function (req, res) {
     alunos = await repo.buscaTodos();
@@ -18,5 +19,6 @@ app.get('/', async function (req, res) {
 });
 
 app.listen(3000, function () {
-    console.log('Rodando na porta 3000')
+    console.log('Rodando na porta 3000');
+    console.log('Acesse http://localhost:3000/');
 });

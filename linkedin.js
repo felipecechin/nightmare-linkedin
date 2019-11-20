@@ -1,20 +1,17 @@
 var Nightmare = require('nightmare');
 var vo = require('vo');
 var account = require('./account.js');
-var moment = require('moment');
 const XLSX = require('xlsx');
 const fs = require("fs");
 const path = require("path");
 
 var mongoose = require('mongoose');
-var express = require('express');
 
 const repo = require('./aluno-repo');
 
 //mongoose connection
 mongoose.connect('mongodb://localhost:27017/alunos', { useNewUrlParser: true, useUnifiedTopology: true });
 
-//console.log(moment().utcOffset(-180).format("DD/MM/YYYY HH:mm:ss"));
 
 const getAllFiles = function(dirPath, arrayOfFiles) {
     files = fs.readdirSync(dirPath);
@@ -41,7 +38,7 @@ function toUpper(str) {
         .join(' ');
 }
 
-console.log("Carregando planilhas...");
+console.log("Carregando planilhas da pasta planilhas...");
 const result = getAllFiles("planilhas");
 
 console.log("Carregando dados dos egressos...");
@@ -60,7 +57,7 @@ result.forEach(function (arquivo) {
         }
     });
 });
-fs.writeFileSync("alunos.json", JSON.stringify(alunos, null, 4));
+//fs.writeFileSync("alunos.json", JSON.stringify(alunos, null, 4));
 
 var email = account.linkedin.email;
 var senha = account.linkedin.senha;
@@ -137,18 +134,18 @@ function *run() {
                                 return false;
                             }
                         })
-                        .then(function (body) {
-                            if (body) {
-                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + '  ' + body.trim());
+                        .then(function (empresa) {
+                            if (empresa) {
+                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ': ' + empresa.trim());
                                 var novoAluno = {
                                     nome: toUpper(alunos[i].nome),
                                     curso: alunos[i].curso,
                                     anoEvasao: alunos[i].anoEvasao,
-                                    empresa: body.trim()
+                                    empresa: empresa.trim()
                                 };
                                 repo.insere(novoAluno);
                             } else {
-                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ": não encontrada empresa alguma");
+                                console.log('['+(i+1)+' de ' + alunos.length + '] ' + toUpper(alunos[i].nome) + ': não encontrada empresa alguma');
                             }
                         });
                 } else {
@@ -163,11 +160,14 @@ function *run() {
         yield nightmare
             .wait(1000)
             .screenshot('./linkedin.png');
-        console.log("Ocorreu algum erro, verifique a imagem linkedin.png no diretório do projeto");
+        console.log("Ocorreu algum erro, verifique a imagem linkedin.png no diretório do projeto.");
+        console.log("Suas credenciais de acesso possivelmente estão incorretas, verifique-as.");
+        process.exit();
     }
 
 
     yield nightmare.end();
+    process.exit();
 }
 
 executar();

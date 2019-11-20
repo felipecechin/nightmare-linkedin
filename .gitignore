@@ -88,6 +88,6 @@ package-lock.json
 
 
 #Output of 'linkedin.js'
-*.png
+linkedin.png
 
 alunos.json
